@@ -262,9 +262,9 @@ var S2_win_median = ee.ImageCollection(s2SrWithCloudMask).map(maskClouds)
 // 3. VISUALIZE AND EXPORT
 Map.addLayer(studyextent,'extent');
 
-//Map.addLayer(S2_spr_median.clip(studyextent.geometry()), {bands: ['B4', 'B3', 'B2'],min:0,max:3000}, 'S2_spring');
-//Map.addLayer(S2_win_median.clip(studyextent.geometry()), {bands: ['B4', 'B3', 'B2'],min:0,max:3000}, 'S2_winter');
-//Map.addLayer(S2_year_median.clip(studyextent.geometry()), {bands: ['B4', 'B3', 'B2'],min:0,max:3000}, 'S2_yearround');
+Map.addLayer(S2_spr_median.clip(studyextent.geometry()), {bands: ['B4', 'B3', 'B2'],min:0,max:3000}, 'S2_spring');
+Map.addLayer(S2_win_median.clip(studyextent.geometry()), {bands: ['B4', 'B3', 'B2'],min:0,max:3000}, 'S2_winter');
+Map.addLayer(S2_year_median.clip(studyextent.geometry()), {bands: ['B4', 'B3', 'B2'],min:0,max:3000}, 'S2_yearround');
 
 
 //Map.addLayer(s1_composite, {bands: ['sum','sum_1','sum_2'], min: [-3500], max: [-100]}, 's1');
