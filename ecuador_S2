@@ -123,5 +123,5 @@ Map.addLayer(extent);
 
 
 
-Map.centerObject(walespoint, 8);
+Map.centerObject(extent, 8);
 
