@@ -117,7 +117,7 @@ Map.addLayer(studyextent,'extent');
 
 
 Export.image.toDrive({
-  image: S2_year_median.clip(studyextent.geometry()).int16(),
+  image: S2_spr_median.clip(studyextent.geometry()).int16(),
   //region: S2_spr.geometry().bounds(),
   description: 'S2_yearround',
   scale: 10,
@@ -127,7 +127,6 @@ Export.image.toDrive({
   // Max pixels for 30m scale
   //maxPixels: 399960*5690220
 });
-
 
 
 
