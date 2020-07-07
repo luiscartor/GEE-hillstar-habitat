@@ -2,90 +2,130 @@
 var studyextent = ee.FeatureCollection("users/luiscartor/ecuadorextent");
 /***** End of imports. If edited, may not auto-convert in the playground. *****/
 
-
-
 // 0. FUNCTIONS
 ////////////////////////////////////////
-// Cloud masking algorithm for Sentinel2
+// Cloud masking algorithma for Sentinel2
 
 
-// Function to mask clouds using the Sentinel-2 QA band.
+// METHOD 1: Function to mask clouds using the Sentinel-2 QA band.
 function maskS2clouds(image) {
   var qa = image.select('QA60');
+
   // Bits 10 and 11 are clouds and cirrus, respectively.
-  var cloudBitMask = Math.pow(2, 10);
-  var cirrusBitMask = Math.pow(2, 11);
+  var cloudBitMask = 1 << 10;
+  var cirrusBitMask = 1 << 11;
+
   // Both flags should be set to zero, indicating clear conditions.
-  var mask = qa.bitwiseAnd(cloudBitMask).eq(0).and(
-             qa.bitwiseAnd(cirrusBitMask).eq(0));
-  // Return the masked and scaled data.
+  var mask = qa.bitwiseAnd(cloudBitMask).eq(0)
+      .and(qa.bitwiseAnd(cirrusBitMask).eq(0));
+      
   return image.updateMask(mask);
 }
 
 
-// 1. LOAD COLLECTION
+// METHOD 2: 
+function maskClouds(img) {
+  var clouds = ee.Image(img.get('cloud_mask')).select('probability');
+  var isNotCloud = clouds.lt(MAX_CLOUD_PROBABILITY);
+  return img.updateMask(isNotCloud);
+}
 
+
+// 1. LOAD COLLECTION
+////////////////////////////////////////////////////////////////////////////////
+// Method 1 cloud masking
 // Load S2 1-C input imagery.
 var S2_spr = ee.ImageCollection('COPERNICUS/S2_SR')
-  // Filter to get only one year of images.
   .filterDate('2019-12-01', '2020-05-31')
-  // Sentinel cloud mask is less selective than Landsat, so some people pre filter by relatively cloud free images
-  .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 50))
-  // Filter to get only images under the region of interest.
   .filterBounds(studyextent)
-  //CLOUD METHOD
   .map(maskS2clouds)
   .select(['B2', 'B3','B4', 'B5', 'B6','B7','B8','B11','B12']);
-  
-print(S2_spr)
 
 var S2_win = ee.ImageCollection('COPERNICUS/S2_SR')
   .filterDate('2019-06-01', '2019-11-30')
-  .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 50))
-  .filterBounds(studyextent)
   .map(maskS2clouds)
   .select(['B2', 'B3','B4', 'B5', 'B6','B7','B8','B11','B12']);
   
 var S2_year = ee.ImageCollection('COPERNICUS/S2_SR')
   .filterDate('2019-06-01', '2020-05-31')
-  .filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 50))
   .filterBounds(studyextent)
   .map(maskS2clouds)
   .select(['B2', 'B3','B4', 'B5', 'B6','B7','B8','B11','B12']);
-  
+////////////////////////////////////////////////////////////////////////////////
 
-// For the case of extracting the S2 data into 10m, we need resample in bilinear:
-var S2_spr_median = S2_spr.median()//.clip(landsat.geometry());//.reproject('EPSG:4326',null,30);
-//S2_spr_median = S2_spr_median.resample('bilinear');
-var S2_win_median = S2_win.median();
-var S2_year_median = S2_year.median();
+// Method 2 cloud masking
+var MAX_CLOUD_PROBABILITY = 65;
+var s2Clouds = ee.ImageCollection('COPERNICUS/S2_CLOUD_PROBABILITY');
+
+// Year round median with Method 2 masking
+var S2_year = ee.ImageCollection('COPERNICUS/S2_SR').filterDate('2019-06-01', '2020-05-31').filterBounds(studyextent);
+var s2Clouds_year = s2Clouds.filterDate('2019-06-01', '2020-05-31').filterBounds(studyextent);
+// Join S2 SR with cloud probability dataset to add cloud mask.
+var s2SrWithCloudMask = ee.Join.saveFirst('cloud_mask').apply({
+  primary: S2_year,
+  secondary: s2Clouds,
+  condition:
+      ee.Filter.equals({leftField: 'system:index', rightField: 'system:index'})
+});
+// Cloud mask, select bands and get median.
+var S2_year_median = ee.ImageCollection(s2SrWithCloudMask).map(maskClouds)
+.select(['B2', 'B3','B4', 'B5', 'B6','B7','B8','B11','B12']).median();
 
 
-print(S2_spr_median);
+// SPRING median with Method 2 masking
+var S2_spr = ee.ImageCollection('COPERNICUS/S2_SR').filterDate('2019-12-01', '2020-05-31').filterBounds(studyextent);
+var s2Clouds_spr = s2Clouds.filterDate('2019-12-01', '2020-05-31').filterBounds(studyextent);
+// Join S2 SR with cloud probability dataset to add cloud mask.
+var s2SrWithCloudMask = ee.Join.saveFirst('cloud_mask').apply({
+  primary: S2_spr,
+  secondary: s2Clouds_spr,
+  condition:
+      ee.Filter.equals({leftField: 'system:index', rightField: 'system:index'})
+});
+// Cloud mask, select bands and get median.
+var S2_spr_median = ee.ImageCollection(s2SrWithCloudMask).map(maskClouds)
+.select(['B2', 'B3','B4', 'B5', 'B6','B7','B8','B11','B12']).median();
+
+// WINTER median with Method 2 masking
+var S2_win = ee.ImageCollection('COPERNICUS/S2_SR').filterDate('2019-06-01', '2019-11-30').filterBounds(studyextent);
+var s2Clouds_win = s2Clouds.filterDate('2019-06-01', '2019-11-30').filterBounds(studyextent);
+// Join S2 SR with cloud probability dataset to add cloud mask.
+var s2SrWithCloudMask = ee.Join.saveFirst('cloud_mask').apply({
+  primary: S2_win,
+  secondary: s2Clouds_win,
+  condition:
+      ee.Filter.equals({leftField: 'system:index', rightField: 'system:index'})
+});
+// Cloud mask, select bands and get median.
+var S2_win_median = ee.ImageCollection(s2SrWithCloudMask).map(maskClouds)
+.select(['B2', 'B3','B4', 'B5', 'B6','B7','B8','B11','B12']).median();
+////////////////////////////////////////////////////////////////////////////////
+
+
 
 
 // 2. CREATE COMPOSITE
-var S2dataset = S2_spr_median.addBands(S2_win_median).addBands(S2_year);
+//var S2dataset = S2_spr_median.addBands(S2_win_median).addBands(S2_year);
 
 
 // 3. VISUALIZE AND EXPORT
 Map.addLayer(S2_spr_median.clip(studyextent.geometry()), {bands: ['B4', 'B3', 'B2'],min:0,max:3000}, 'S2_spring');
 Map.addLayer(S2_win_median.clip(studyextent.geometry()), {bands: ['B4', 'B3', 'B2'],min:0,max:3000}, 'S2_winter');
 Map.addLayer(S2_year_median.clip(studyextent.geometry()), {bands: ['B4', 'B3', 'B2'],min:0,max:3000}, 'S2_yearround');
+
 Map.addLayer(studyextent,'extent');
 
-//Export.image.toDrive({
-//  image: dataset.clip(S2_spr.geometry()).int16(),
-//  //region: S2_spr.geometry().bounds(),
-//  description: 'p29',
-//  scale: 30,
-//  crs : 'EPSG:27700',
-//  // Dimensions for 30m scale
-//  dimensions:"399960x5690220",
-//  // Max pixels for 30m scale
-//  maxPixels: 399960*5690220
-// 
-//});
+Export.image.toDrive({
+  image: S2_year_median.clip(studyextent.geometry()).int16(),
+  //region: S2_spr.geometry().bounds(),
+  description: 'S2_yearround',
+  scale: 10,
+  crs : 'EPSG:27700',
+  // Dimensions for 30m scale
+  //dimensions:"399960x5690220",
+  // Max pixels for 30m scale
+  //maxPixels: 399960*5690220
+});
 
 
 
