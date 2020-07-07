@@ -8,36 +8,8 @@ var extent = ee.FeatureCollection("users/luiscartor/ecuadorextent");
 ////////////////////////////////////////
 // Cloud masking algorithm for Sentinel2
 
-//METHOD 1: Built on ideas from Landsat cloudScore algorithm
-//Currently in beta and may need tweaking for individual study areas
-var rescale = function(img, exp, thresholds) {
-    return img.expression(exp, {img: img})
-        .subtract(thresholds[0]).divide(thresholds[1] - thresholds[0]);
-  };
-  
-function sentinelCloudScore(img) {
-  
-  // Compute several indicators of cloudyness and take the minimum of them.
-  var score = ee.Image(1);
-    // Clouds are reasonably bright in the blue and cirrus bands.
-  score = score.min(rescale(img, 'img.B2', [0.1, 0.5]));
-  score = score.min(rescale(img, 'img.B1', [0.1, 0.3]));
-  score = score.min(rescale(img, 'img.B1 + img.B10', [0.15, 0.2]));
-    // Clouds are reasonably bright in all visible bands.
-  score = score.min(rescale(img, 'img.B4 + img.B3 + img.B2', [0.2, 0.8]));
-  //Clouds are moist
-  var ndmi = img.normalizedDifference(['B8','B11']);
-  score=score.min(rescale(ndmi, 'img', [-0.1, 0.1]));
-    // However, clouds are not snow.
-  var ndsi = img.normalizedDifference(['B3', 'B11']);
-  score=score.min(rescale(ndsi, 'img', [0.8, 0.6]));
-    score = score.multiply(100).byte();
- 
-  return img.addBands(score.rename('cloudScore'));
-}
-//////////////////////////////////////////////////////////////////////////
 
-// METHOD 2: Function to mask clouds using the Sentinel-2 QA band.
+// Function to mask clouds using the Sentinel-2 QA band.
 function maskS2clouds(image) {
   var qa = image.select('QA60');
   // Bits 10 and 11 are clouds and cirrus, respectively.
@@ -61,14 +33,8 @@ var S2_spr = ee.ImageCollection('COPERNICUS/S2')
   //.filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 20))
   // Filter to get only images under the region of interest.
   .filterBounds(extent)
-  //CLOUD METHOD2
-  //.map(maskS2clouds)
-  //CLOUD METHOD 1
-  .map(function bustClouds(img){
-  img = sentinelCloudScore(img);
-  img = img.updateMask(img.select(['cloudScore']).gt(cloudThresh).focal_min(contractPixels).focal_max(dilatePixels).not());
-  return img
-  })
+  //CLOUD METHOD
+  .map(maskS2clouds)
   .select(['B2', 'B3','B4', 'B5', 'B6','B7','B8','B11','B12']);
   
 var S2_win = ee.ImageCollection('COPERNICUS/S2')
