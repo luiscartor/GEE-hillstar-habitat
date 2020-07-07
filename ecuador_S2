@@ -99,7 +99,7 @@ var S2dataset = S2_spr_median.addBands(S2_win_median).addBands(S2_year);
 
 
 // 3. VISUALIZE AND EXPORT
-Map.addLayer(S2_spr_median, {bands: ['B4', 'B3', 'B2'],min:0,max:3000}, 'S2_spring');
+Map.addLayer(S2_spr_median.clip(extent.geometry()), {bands: ['B4', 'B3', 'B2'],min:0,max:3000}, 'S2_spring');
 Map.addLayer(extent,'extent');
 
 //Export.image.toDrive({
