@@ -115,6 +115,7 @@ Map.addLayer(S2_year_median.clip(studyextent.geometry()), {bands: ['B4', 'B3', '
 
 Map.addLayer(studyextent,'extent');
 
+
 Export.image.toDrive({
   image: S2_year_median.clip(studyextent.geometry()).int16(),
   //region: S2_spr.geometry().bounds(),
