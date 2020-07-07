@@ -120,7 +120,7 @@ Export.image.toDrive({
   //region: S2_spr.geometry().bounds(),
   description: 'S2_yearround',
   scale: 10,
-  crs : 'EPSG:27700',
+  crs : 'EPSG:27700'
   // Dimensions for 30m scale
   //dimensions:"399960x5690220",
   // Max pixels for 30m scale
