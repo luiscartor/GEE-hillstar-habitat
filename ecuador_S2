@@ -224,6 +224,8 @@ var s1 = ee.ImageCollection('COPERNICUS/S1_GRD')
   // Filter to orbitdirection Descending
   .filter(ee.Filter.eq('orbitProperties_pass', 'DESCENDING'));
 
+print(s1)
+
 var vh = s1.select('VH').filterBounds(studyextent);
 var vv = s1.select('VV').filterBounds(studyextent);
 
@@ -248,7 +250,7 @@ var diffwin = vvwin.subtract(vhwin);
 
 // Merge images in one composite
 var s1_composite = vhspr.addBands(vhwin).addBands(vvspr).addBands(vvwin).addBands(diffspr).addBands(diffwin);
-
+print(s1_composite)
 
 ////////////////////////////////////////////////////////////////////////////////
 
