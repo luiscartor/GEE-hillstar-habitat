@@ -211,43 +211,43 @@ var S2_win_median = ee.ImageCollection(s2SrWithCloudMask).map(maskClouds)
 // S1 RADAR LAYERS
 
 // LOAD S1 COLLECTION
-//var s1 = ee.ImageCollection('COPERNICUS/S1_GRD')
-//  // Filter to get images with VV and VH dual polarization.
-//  .filter(ee.Filter.listContains('transmitterReceiverPolarisation', 'VH'))
-//  .filter(ee.Filter.listContains('transmitterReceiverPolarisation', 'VV'))
-//  // Filter to get images collected in interferometric wide swath mode.
-//  .filter(ee.Filter.eq('instrumentMode', 'IW'))
-//  // select relative orbit number
-//  .filter(ee.Filter.eq('relativeOrbitNumber_start', 52))
-//  // Filter time to images dates
-//  .filterDate('2019-06-01', '2020-05-31')
-//  // Filter to orbitdirection Descending
-//  .filter(ee.Filter.eq('orbitProperties_pass', 'DESCENDING'));
+var s1 = ee.ImageCollection('COPERNICUS/S1_GRD')
+  // Filter to get images with VV and VH dual polarization.
+  .filter(ee.Filter.listContains('transmitterReceiverPolarisation', 'VH'))
+  .filter(ee.Filter.listContains('transmitterReceiverPolarisation', 'VV'))
+  // Filter to get images collected in interferometric wide swath mode.
+  .filter(ee.Filter.eq('instrumentMode', 'IW'))
+  // select relative orbit number
+  .filter(ee.Filter.eq('relativeOrbitNumber_start', 52))
+  // Filter time to images dates
+  .filterDate('2019-06-01', '2020-05-31')
+  // Filter to orbitdirection Descending
+  .filter(ee.Filter.eq('orbitProperties_pass', 'DESCENDING'));
 
-//var vh = s1.select('VH').filterBounds(studyextent);
-//var vv = s1.select('VV').filterBounds(studyextent);
+var vh = s1.select('VH').filterBounds(studyextent);
+var vv = s1.select('VV').filterBounds(studyextent);
 
 
 // COMPOSITING
 
 // Create single images that can be displayed as one 3-band composite image
 // Calculate the median for different times and polarisations
-//var vhspr = vh.filterDate('2019-12-01', '2020-05-31').median();
-//vhspr = ee.Image(toDB(RefinedLee(toNatural(vhspr))).arrayGet([0])).multiply(100);
-//var vhwin = vh.filterDate('2019-06-01', '2020-11-30').median();
-//vhwin = ee.Image(toDB(RefinedLee(toNatural(vhwin))).arrayGet([0])).multiply(100);
+var vhspr = vh.filterDate('2019-12-01', '2020-05-31').median();
+vhspr = ee.Image(toDB(RefinedLee(toNatural(vhspr))).arrayGet([0])).multiply(100);
+var vhwin = vh.filterDate('2019-06-01', '2020-11-30').median();
+vhwin = ee.Image(toDB(RefinedLee(toNatural(vhwin))).arrayGet([0])).multiply(100);
 
-//var vvspr = vv.filterDate('2019-12-01', '2020-05-31').median();
-//vvspr = ee.Image(toDB(RefinedLee(toNatural(vvspr))).arrayGet([0])).multiply(100);
-//var vvwin = vh.filterDate('2019-06-01', '2020-11-30').median();
-//vvwin = ee.Image(toDB(RefinedLee(toNatural(vvwin))).arrayGet([0])).multiply(100);
+var vvspr = vv.filterDate('2019-12-01', '2020-05-31').median();
+vvspr = ee.Image(toDB(RefinedLee(toNatural(vvspr))).arrayGet([0])).multiply(100);
+var vvwin = vh.filterDate('2019-06-01', '2020-11-30').median();
+vvwin = ee.Image(toDB(RefinedLee(toNatural(vvwin))).arrayGet([0])).multiply(100);
 
 // Bands for (VV-VH) (see Abdikan et al. 2016)
-//var diffspr = vvspr.subtract(vhspr);
-//var diffwin = vvwin.subtract(vhwin);
+var diffspr = vvspr.subtract(vhspr);
+var diffwin = vvwin.subtract(vhwin);
 
 // Merge images in one composite
-//var s1_composite = vhspr.addBands(vhwin).addBands(vvspr).addBands(vvwin).addBands(diffspr).addBands(diffwin);
+var s1_composite = vhspr.addBands(vhwin).addBands(vvspr).addBands(vvwin).addBands(diffspr).addBands(diffwin);
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -260,14 +260,15 @@ var S2_win_median = ee.ImageCollection(s2SrWithCloudMask).map(maskClouds)
 
 
 // 3. VISUALIZE AND EXPORT
-Map.addLayer(studyextent,'extent');
+Map.centerObject(studyextent, 8);
+//Map.addLayer(studyextent,'extent');
 
 Map.addLayer(S2_spr_median.clip(studyextent.geometry()), {bands: ['B4', 'B3', 'B2'],min:0,max:3000}, 'S2_spring');
 Map.addLayer(S2_win_median.clip(studyextent.geometry()), {bands: ['B4', 'B3', 'B2'],min:0,max:3000}, 'S2_winter');
 Map.addLayer(S2_year_median.clip(studyextent.geometry()), {bands: ['B4', 'B3', 'B2'],min:0,max:3000}, 'S2_yearround');
 
 
-//Map.addLayer(s1_composite, {bands: ['sum','sum_1','sum_2'], min: [-3500], max: [-100]}, 's1');
+Map.addLayer(s1_composite, {bands: ['sum','sum_1','sum_2'], min: [-3500], max: [-100]}, 's1');
 
 
 //Export.image.toDrive({
@@ -285,6 +286,6 @@ Map.addLayer(S2_year_median.clip(studyextent.geometry()), {bands: ['B4', 'B3', '
 
 
 
-Map.centerObject(studyextent, 8);
+
 
 
