@@ -12,10 +12,10 @@ var studyextent = ee.FeatureCollection("users/luiscartor/ecuadorextent");
 
 // 0. PARAMETERS
 // Start dates for temporal aggregation
-var startdate = ['2019-06-01'];
-var winterend = ['2019-11-30'];
-var springstart = ['2019-12-01'];
-var enddate = ['2020-05-31'];
+var startdate = '2019-06-01';
+var winterend = '2019-11-30';
+var springstart = '2019-12-01';
+var enddate = '2020-05-31';
 
 // Sentinel-2 used bands
 var S2bands = ['B2', 'B3','B4', 'B5', 'B6','B7','B8','B11','B12'];
@@ -324,9 +324,3 @@ Export.image.toDrive({
   //maxPixels: 399960*5690220
   maxPixels: 3082732677
 });
-
-
-
-
-
-
