@@ -212,17 +212,18 @@ var S2_win_median = ee.ImageCollection(s2SrWithCloudMask).map(maskClouds)
 
 // LOAD S1 COLLECTION
 var s1 = ee.ImageCollection('COPERNICUS/S1_GRD')
+// Filter to get images collected in interferometric wide swath mode.
+  .filter(ee.Filter.eq('instrumentMode', 'IW'))
   // Filter to get images with VV and VH dual polarization.
   .filter(ee.Filter.listContains('transmitterReceiverPolarisation', 'VH'))
   .filter(ee.Filter.listContains('transmitterReceiverPolarisation', 'VV'))
-  // Filter to get images collected in interferometric wide swath mode.
-  .filter(ee.Filter.eq('instrumentMode', 'IW'))
   // select relative orbit number
-  .filter(ee.Filter.eq('relativeOrbitNumber_start', 52))
+  //.filter(ee.Filter.eq('relativeOrbitNumber_start', 52))
   // Filter time to images dates
   .filterDate('2019-06-01', '2020-05-31')
+  .filterBounds(studyextent)
   // Filter to orbitdirection Descending
-  .filter(ee.Filter.eq('orbitProperties_pass', 'DESCENDING'));
+  .filter(ee.Filter.eq('orbitProperties_pass', 'ASCENDING'));
 
 print(s1)
 
@@ -260,8 +261,8 @@ print(s1_composite)
 
 
 
-// 2. CREATE COMPOSITE
-//var S2dataset = S2_spr_median.addBands(S2_win_median).addBands(S2_year);
+// 2. CREATE OPTICAL-RADAR COMPOSITE
+var S2S1dataset = S2_year_median.addBands(s1_composite);
 
 
 // 3. VISUALIZE AND EXPORT
@@ -273,11 +274,11 @@ Map.addLayer(S2_win_median.clip(studyextent.geometry()), {bands: ['B4', 'B3', 'B
 Map.addLayer(S2_year_median.clip(studyextent.geometry()), {bands: ['B4', 'B3', 'B2'],min:0,max:3000}, 'S2_yearround');
 
 
-Map.addLayer(s1_composite, {bands: ['sum','sum_1','sum_2'], min: [-3500], max: [-100]}, 's1');
+Map.addLayer(s1_composite.clip(studyextent.geometry()), {bands: ['sum','sum_1','sum_2'], min: [-3500], max: [-100]}, 's1');
 
 
 //Export.image.toDrive({
-//  image: S2_spr_median.clip(studyextent.geometry()).int16(),
+//  image: S2_year_median.clip(studyextent.geometry()).int16(),
 //  //region: S2_spr.geometry().bounds(),
 //  description: 'S2_yearround',
 //  scale: 10,
@@ -288,7 +289,18 @@ Map.addLayer(s1_composite, {bands: ['sum','sum_1','sum_2'], min: [-3500], max: [
 //  //maxPixels: 399960*5690220
 //});
 
-
+Export.image.toDrive({
+  image: S2S1dataset.clip(studyextent.geometry()).int16(),
+  //region: S2_spr.geometry().bounds(),
+  description: 'S2year_S1_composite',
+  scale: 10,
+  crs : 'EPSG:4326',
+  // Dimensions for 30m scale
+  //dimensions:"399960x5690220",
+  // Max pixels for 30m scale
+  //maxPixels: 399960*5690220
+  maxPixels: 37531051888
+});
 
 
 
