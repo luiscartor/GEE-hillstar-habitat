@@ -3,8 +3,27 @@ var studyextent = ee.FeatureCollection("users/luiscartor/ecuadorextent");
 /***** End of imports. If edited, may not auto-convert in the playground. *****/
 
 // hillstarproject_S2S1composite
-// 
+// Extracts 1-year temporally aggregated S2 data (median of B2-8,11,12) and 6-6months (2 layers 
+// for 1year) S1 data (median of VV, VH, VV-VH)
 
+// By Luis, 7 July 2020
+
+//////////////////////////////////////////////////////////////////////////////////////
+
+// PARAMETERS
+// Start dates for temporal aggregation
+var startdate = ['2019-06-01'];
+var winterend = ['2019-11-30'];
+var springstart = ['2019-12-01'];
+var endate = ['2020-05-31'];
+
+// Sentinel-2 used bands
+var S2bands = ['B2', 'B3','B4', 'B5', 'B6','B7','B8','B11','B12'];
+
+// Maximum probability of cloud presence for cloud-masking of S2 images
+var MAX_CLOUD_PROBABILITY = 65;
+
+//////////////////////////////////////////////////////////////////////////////////////
 
 // 0. FUNCTIONS
 ////////////////////////////////////////
@@ -141,29 +160,28 @@ function RefinedLee(img) {
 ////////////////////////////////////////
 
 // 1. LOAD COLLECTION
-////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////
 // Method 1 cloud masking
 // Load S2 1-C input imagery.
 var S2_spr = ee.ImageCollection('COPERNICUS/S2_SR')
-  .filterDate('2019-12-01', '2020-05-31')
+  .filterDate(springstart, enddate)
   .filterBounds(studyextent)
   .map(maskS2clouds)
-  .select(['B2', 'B3','B4', 'B5', 'B6','B7','B8','B11','B12']);
+  .select(S2bands);
 
 var S2_win = ee.ImageCollection('COPERNICUS/S2_SR')
-  .filterDate('2019-06-01', '2019-11-30')
+  .filterDate(startdate, winterend)
   .map(maskS2clouds)
-  .select(['B2', 'B3','B4', 'B5', 'B6','B7','B8','B11','B12']);
+  .select(S2bands);
   
 var S2_year = ee.ImageCollection('COPERNICUS/S2_SR')
-  .filterDate('2019-06-01', '2020-05-31')
+  .filterDate(startdate, enddate)
   .filterBounds(studyextent)
   .map(maskS2clouds)
-  .select(['B2', 'B3','B4', 'B5', 'B6','B7','B8','B11','B12']);
+  .select(S2bands);
 ////////////////////////////////////////////////////////////////////////////////
 
 // Method 2 cloud masking
-var MAX_CLOUD_PROBABILITY = 65;
 var s2Clouds = ee.ImageCollection('COPERNICUS/S2_CLOUD_PROBABILITY');
 
 // Year round median with Method 2 masking
@@ -178,12 +196,12 @@ var s2SrWithCloudMask = ee.Join.saveFirst('cloud_mask').apply({
 });
 // Cloud mask, select bands and get median.
 var S2_year_median = ee.ImageCollection(s2SrWithCloudMask).map(maskClouds)
-.select(['B2', 'B3','B4', 'B5', 'B6','B7','B8','B11','B12']).median();
+.select(S2bands).median();
 
 
 // SPRING median with Method 2 masking
-var S2_spr = ee.ImageCollection('COPERNICUS/S2_SR').filterDate('2019-12-01', '2020-05-31').filterBounds(studyextent);
-var s2Clouds_spr = s2Clouds.filterDate('2019-12-01', '2020-05-31').filterBounds(studyextent);
+var S2_spr = ee.ImageCollection('COPERNICUS/S2_SR').filterDate(springstart, enddate).filterBounds(studyextent);
+var s2Clouds_spr = s2Clouds.filterDate(springstart, enddate).filterBounds(studyextent);
 // Join S2 SR with cloud probability dataset to add cloud mask.
 var s2SrWithCloudMask = ee.Join.saveFirst('cloud_mask').apply({
   primary: S2_spr,
@@ -193,11 +211,11 @@ var s2SrWithCloudMask = ee.Join.saveFirst('cloud_mask').apply({
 });
 // Cloud mask, select bands and get median.
 var S2_spr_median = ee.ImageCollection(s2SrWithCloudMask).map(maskClouds)
-.select(['B2', 'B3','B4', 'B5', 'B6','B7','B8','B11','B12']).median();
+.select(S2bands).median();
 
 // WINTER median with Method 2 masking
-var S2_win = ee.ImageCollection('COPERNICUS/S2_SR').filterDate('2019-06-01', '2019-11-30').filterBounds(studyextent);
-var s2Clouds_win = s2Clouds.filterDate('2019-06-01', '2019-11-30').filterBounds(studyextent);
+var S2_win = ee.ImageCollection('COPERNICUS/S2_SR').filterDate(startdate, winterend).filterBounds(studyextent);
+var s2Clouds_win = s2Clouds.filterDate(startdate, winterend).filterBounds(studyextent);
 // Join S2 SR with cloud probability dataset to add cloud mask.
 var s2SrWithCloudMask = ee.Join.saveFirst('cloud_mask').apply({
   primary: S2_win,
@@ -207,7 +225,7 @@ var s2SrWithCloudMask = ee.Join.saveFirst('cloud_mask').apply({
 });
 // Cloud mask, select bands and get median.
 var S2_win_median = ee.ImageCollection(s2SrWithCloudMask).map(maskClouds)
-.select(['B2', 'B3','B4', 'B5', 'B6','B7','B8','B11','B12']).median();
+.select(S2bands).median();
 ////////////////////////////////////////////////////////////////////////////////
 
 
@@ -224,7 +242,7 @@ var s1 = ee.ImageCollection('COPERNICUS/S1_GRD')
   // select relative orbit number
   //.filter(ee.Filter.eq('relativeOrbitNumber_start', 52))
   // Filter time to images dates
-  .filterDate('2019-06-01', '2020-05-31')
+  .filterDate(startdate, enddate)
   .filterBounds(studyextent)
   // Filter to orbitdirection Descending
   .filter(ee.Filter.eq('orbitProperties_pass', 'ASCENDING'));
@@ -240,14 +258,14 @@ print(vv)
 
 // Create single images that can be displayed as one 3-band composite image
 // Calculate the median for different times and polarisations
-var vhspr = vh.filterDate('2019-12-01', '2020-05-31').median();
+var vhspr = vh.filterDate(startdate,enddate).median();
 vhspr = ee.Image(toDB(RefinedLee(toNatural(vhspr))).arrayGet([0])).multiply(100);
-var vhwin = vh.filterDate('2019-06-01', '2020-11-30').median();
+var vhwin = vh.filterDate(startdate, enddate).median();
 vhwin = ee.Image(toDB(RefinedLee(toNatural(vhwin))).arrayGet([0])).multiply(100);
 
-var vvspr = vv.filterDate('2019-12-01', '2020-05-31').median();
+var vvspr = vv.filterDate(startdate, enddate).median();
 vvspr = ee.Image(toDB(RefinedLee(toNatural(vvspr))).arrayGet([0])).multiply(100);
-var vvwin = vv.filterDate('2019-06-01', '2020-11-30').median();
+var vvwin = vv.filterDate(startdate, enddate).median();
 vvwin = ee.Image(toDB(RefinedLee(toNatural(vvwin))).arrayGet([0])).multiply(100);
 
 print(vhspr)
