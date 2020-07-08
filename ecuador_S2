@@ -284,7 +284,7 @@ Export.image.toDrive({
   scale: 10,
   crs : 'EPSG:32717',
   // Dimensions for 30m scale
-  //dimensions:"109312x312320",
+  dimensions:"31232x78080",
   // Max pixels for 30m scale
   maxPixels:  3082732677
 });
@@ -297,7 +297,7 @@ Export.image.toDrive({
   scale: 10,
   crs : 'EPSG:32717',
   // Dimensions for 30m scale
-  //dimensions:"24064x96256",
+  dimensions:"24064x84224",
   // Max pixels for 30m scale
   //maxPixels: 399960*5690220
   maxPixels: 3082732677
