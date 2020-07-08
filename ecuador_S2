@@ -277,30 +277,32 @@ Map.addLayer(S2_year_median.clip(studyextent.geometry()), {bands: ['B4', 'B3', '
 Map.addLayer(s1_composite.clip(studyextent.geometry()), {bands: ['sum','sum_1','sum_2'], min: [-3500], max: [-100]}, 's1');
 
 
-//Export.image.toDrive({
-//  image: S2_year_median.clip(studyextent.geometry()).int16(),
-//  //region: S2_spr.geometry().bounds(),
-//  description: 'S2_yearround',
-//  scale: 10,
-//  crs : 'EPSG:27700'
-//  // Dimensions for 30m scale
-//  //dimensions:"399960x5690220",
-//  // Max pixels for 30m scale
-//  //maxPixels: 399960*5690220
-//});
+Export.image.toDrive({
+  image: S2_year_median.clip(studyextent.geometry()).int16(),
+  //region: S2_spr.geometry().bounds(),
+  description: 'S2_yearround',
+  scale: 10,
+  crs : 'EPSG:32717'
+  // Dimensions for 30m scale
+  //dimensions:"109312x312320",
+  // Max pixels for 30m scale
+  //maxPixels: 399960*5690220
+});
+//34140323840
 
 Export.image.toDrive({
   image: S2S1dataset.clip(studyextent.geometry()).int16(),
   //region: S2_spr.geometry().bounds(),
   description: 'S2year_S1_composite',
   scale: 10,
-  crs : 'EPSG:4326',
+  crs : 'EPSG:32717',
   // Dimensions for 30m scale
-  //dimensions:"399960x5690220",
+  //dimensions:"24064x96256",
   // Max pixels for 30m scale
   //maxPixels: 399960*5690220
-  maxPixels: 37531051888
+  //maxPixels: 37531051888
 });
+2316304384
 
 
 
