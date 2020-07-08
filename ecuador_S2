@@ -286,7 +286,7 @@ Export.image.toDrive({
   // Dimensions for 30m scale
   //dimensions:"109312x312320",
   // Max pixels for 30m scale
-  //maxPixels: 2460521675
+  maxPixels: 2460521675
 });
 //34140323840
 
@@ -300,7 +300,7 @@ Export.image.toDrive({
   //dimensions:"24064x96256",
   // Max pixels for 30m scale
   //maxPixels: 399960*5690220
-  //maxPixels: 2460521675
+  maxPixels: 2460521675
 });
 //2316304384
 
