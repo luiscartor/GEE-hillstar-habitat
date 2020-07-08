@@ -243,7 +243,7 @@ vhwin = ee.Image(toDB(RefinedLee(toNatural(vhwin))).arrayGet([0])).multiply(100)
 
 var vvspr = vv.filterDate('2019-12-01', '2020-05-31').median();
 vvspr = ee.Image(toDB(RefinedLee(toNatural(vvspr))).arrayGet([0])).multiply(100);
-var vvwin = vh.filterDate('2019-06-01', '2020-11-30').median();
+var vvwin = vv.filterDate('2019-06-01', '2020-11-30').median();
 vvwin = ee.Image(toDB(RefinedLee(toNatural(vvwin))).arrayGet([0])).multiply(100);
 
 print(vhspr)
