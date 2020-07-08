@@ -2,6 +2,10 @@
 var studyextent = ee.FeatureCollection("users/luiscartor/ecuadorextent");
 /***** End of imports. If edited, may not auto-convert in the playground. *****/
 
+// hillstarproject_S2S1composite
+// 
+
+
 // 0. FUNCTIONS
 ////////////////////////////////////////
 // Cloud masking algorithma for Sentinel2
