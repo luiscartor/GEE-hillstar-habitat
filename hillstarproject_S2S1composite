@@ -186,6 +186,7 @@ var s2Clouds = ee.ImageCollection('COPERNICUS/S2_CLOUD_PROBABILITY');
 
 // Year round median with Method 2 masking
 var S2_year = ee.ImageCollection('COPERNICUS/S2_SR').filterDate('2019-06-01', '2020-05-31').filterBounds(studyextent);
+print(S2_year)
 var s2Clouds_year = s2Clouds.filterDate('2019-06-01', '2020-05-31').filterBounds(studyextent);
 // Join S2 SR with cloud probability dataset to add cloud mask.
 var s2SrWithCloudMask = ee.Join.saveFirst('cloud_mask').apply({
